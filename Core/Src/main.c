@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -34,6 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define BUFFERSIZE 22
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,13 +46,16 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static ITStatus UartReady = RESET;
+static uint8_t Buffer[] = "Hello World interrupt!";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -62,52 +67,62 @@ void SystemClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void) {
-    /* USER CODE BEGIN 1 */
-//    uint8_t Tecken;
-    uint8_t *test = "W";
-    uint8_t *hello = "Hello FUCK!\n\r";
-    /* USER CODE END 1 */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+  /* USER CODE END 1 */
 
-    /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-    /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
+  /* USER CODE END Init */
 
-    /* USER CODE END Init */
+  /* Configure the system clock */
+  SystemClock_Config();
 
-    /* Configure the system clock */
-    SystemClock_Config();
+  /* USER CODE BEGIN SysInit */
+  /* USER CODE END SysInit */
 
-    /* USER CODE BEGIN SysInit */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_UART5_Init();
+  /* USER CODE BEGIN 2 */
+  /* USER CODE END 2 */
 
-    /* USER CODE END SysInit */
+  /* Init scheduler */
+  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+  /* Start scheduler */
+  osKernelStart();
 
-    /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_UART5_Init();
-    /* USER CODE BEGIN 2 */
-    if (HAL_UART_Transmit(&huart5, hello, strlen(hello), 5000) != HAL_OK) {
-	Error_Handler();
-    }
-    /* USER CODE END 2 */
+  /* We should never get here as control is now taken by the scheduler */
 
-    /* Infinite loop */
-    /* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
     while (1) {
-	if (HAL_UART_Receive(&huart5, test, 15, 5000) != HAL_OK) {
+	/* peripheral in transmission process */
+	if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
 	    Error_Handler();
 	}
-	if (HAL_UART_Transmit(&huart5, test, 1, 5000) != HAL_OK) {
+
+	while (UartReady != SET) {};
+	UartReady = RESET;
+
+	/* peripheral in reception process */
+	if (HAL_UART_Receive_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
 	    Error_Handler();
 	}
+
+	while (UartReady != SET) {};
+	UartReady = RESET;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
     }
-    /* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
@@ -158,8 +173,48 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief Tx Transfer competed callback
+  * @param UartHandle: UART handle
+  * @note Reporting that the tranmission over UART is complete.
+  * @retval None
+  */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
+    UartReady = SET;
+}
+
+/**
+* @brief Rx Transfer completed callback
+* @param UartHandle: UART handle
+* @note Reporting that the reception over UART is complete.
+* @retval None
+*/
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
+    UartReady = SET;
+}
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -167,12 +222,13 @@ void SystemClock_Config(void)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-    /* User can add his own implementation to report the HAL error return state */
+    /* USER CODE BEGIN Error_Handler_Debug */
+    /* User can add an own implementation to report the HAL error return state */
+    __disable_irq();
     while (1) {
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
     }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
