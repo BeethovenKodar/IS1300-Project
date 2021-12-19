@@ -26,7 +26,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
-#include "uartcom.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,7 +35,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUFFERSIZE 22
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,8 +52,6 @@ static uint8_t Buffer[] = "Hello World interrupt!";
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -159,25 +155,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-///**
-//  * @brief Tx Transfer competed callback
-//  * @param UartHandle: UART handle
-//  * @note Reporting that the tranmission over UART is complete.
-//  * @retval None
-//  */
-//void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
-//    UartReady = SET;
-//}
-//
-///**
-//* @brief Rx Transfer completed callback
-//* @param UartHandle: UART handle
-//* @note Reporting that the reception over UART is complete.
-//* @retval None
-//*/
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
-//    UartReady = SET;
-//}
 /* USER CODE END 4 */
 
 /**

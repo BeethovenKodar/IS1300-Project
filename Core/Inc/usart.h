@@ -28,7 +28,7 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "stdint.h"
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart5;
@@ -40,7 +40,11 @@ extern UART_HandleTypeDef huart5;
 void MX_UART5_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void uart_transmit(uint8_t buffer[], uint16_t size);
+void uart_receive(uint8_t buffer[], uint16_t size);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
+void Error_Uart(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
