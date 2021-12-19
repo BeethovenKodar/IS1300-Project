@@ -60,7 +60,7 @@ osThreadId_t digitalClockHandle;
 const osThreadAttr_t digitalClock_attributes = {
   .name = "digitalClock",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,10 +99,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the threads */
-  /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of digitalClock */
   digitalClockHandle = osThreadNew(startDigitalClock, NULL, &digitalClock_attributes);
 
   /* add threads, ... */
@@ -124,13 +121,16 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
+    /* USER CODE BEGIN StartDefaultTask */
+    TickType_t xLastWakeTime;
+    const TickType_t xPeriod = pdMS_TO_TICKS(2000);
+    xLastWakeTime = xTaskGetTickCount();
+    while(1) {
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	vTaskDelayUntil(&xLastWakeTime, xPeriod);
+
+    }
+    /* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Header_startDigitalClock */
@@ -142,13 +142,16 @@ void StartDefaultTask(void *argument)
 /* USER CODE END Header_startDigitalClock */
 void startDigitalClock(void *argument)
 {
-  /* USER CODE BEGIN startDigitalClock */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startDigitalClock */
+    /* USER CODE BEGIN startDigitalClock */
+    TickType_t xLastWakeTime;
+    const TickType_t xPeriod = pdMS_TO_TICKS(1000);
+    xLastWakeTime = xTaskGetTickCount();
+    /* Infinite loop */
+    while(1) {
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	vTaskDelayUntil(&xLastWakeTime, xPeriod);
+    }
+    /* USER CODE END startDigitalClock */
 }
 
 /* Private application code --------------------------------------------------*/

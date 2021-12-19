@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "uartcom.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +47,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static ITStatus UartReady = RESET;
 static uint8_t Buffer[] = "Hello World interrupt!";
 /* USER CODE END PV */
 
@@ -93,34 +93,20 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
+  //osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  //MX_FREERTOS_Init();
   /* Start scheduler */
-  osKernelStart();
+  //osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1) {
-	/* peripheral in transmission process */
-	if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
-	    Error_Handler();
-	}
-
-	while (UartReady != SET) {};
-	UartReady = RESET;
-
-	/* peripheral in reception process */
-	if (HAL_UART_Receive_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
-	    Error_Handler();
-	}
-
-	while (UartReady != SET) {};
-	UartReady = RESET;
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+	uart_transmit(Buffer, (uint16_t) 22);
+	uart_receive(Buffer, (uint16_t) 22);
+	/* USER CODE END WHILE */
+	/* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
 }
@@ -173,26 +159,25 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
-  * @brief Tx Transfer competed callback
-  * @param UartHandle: UART handle
-  * @note Reporting that the tranmission over UART is complete.
-  * @retval None
-  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
-    UartReady = SET;
-}
-
-/**
-* @brief Rx Transfer completed callback
-* @param UartHandle: UART handle
-* @note Reporting that the reception over UART is complete.
-* @retval None
-*/
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
-    UartReady = SET;
-}
-
+///**
+//  * @brief Tx Transfer competed callback
+//  * @param UartHandle: UART handle
+//  * @note Reporting that the tranmission over UART is complete.
+//  * @retval None
+//  */
+//void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
+//    UartReady = SET;
+//}
+//
+///**
+//* @brief Rx Transfer completed callback
+//* @param UartHandle: UART handle
+//* @note Reporting that the reception over UART is complete.
+//* @retval None
+//*/
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
+//    UartReady = SET;
+//}
 /* USER CODE END 4 */
 
 /**
@@ -225,9 +210,7 @@ void Error_Handler(void)
     /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add an own implementation to report the HAL error return state */
     __disable_irq();
-    while (1) {
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-    }
+    while (1) {}
     /* USER CODE END Error_Handler_Debug */
 }
 

@@ -6,25 +6,30 @@
  */
 
 
+/* includes */
+#include "uartcom.h"
+
 /* private defines */
 #define BUFFERSIZE 22
 
 /* private variables */
-static ITStatus UartDoneT = NULL;
-static ITStatus UartDoneR = NULL;
-static uint8_t Buffer[] = "Hello World interrupt!";
+static ITStatus UartDoneT = SET;
+static ITStatus UartDoneR = SET;
 
 /**
   * @brief UART transmission initializer
   * @param buffer: the buffer to use
-  * @note Reporting that the tranmission over UART is complete.
+  * @note Starting the interrupt handler for transmitting.
   * @retval None
   */
-void uart_transmit(uint8_t *buffer) {
-    /* uart in reception process */
-    UartDoneT = RESET;
-    if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
-	Error_Handler();
+void uart_transmit(uint8_t buffer[], uint16_t size) {
+    if (UartDoneR == SET) {
+	/* uart in reception process */
+	UartDoneR = RESET;
+	UartDoneT = RESET;
+	if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
+	    Error_Uart();
+	}
     }
 }
 
@@ -34,11 +39,14 @@ void uart_transmit(uint8_t *buffer) {
   * @note Starting the interrupt handler for receiving.
   * @retval None
   */
-void uart_receive(uint8_t *buffer) {
-    /* uart in reception process */
-    UartDoneR = RESET;
-    if (HAL_UART_Receive_IT(&huart5, (uint8_t*)Buffer, BUFFERSIZE) != HAL_OK) {
-	Error_Handler();
+void uart_receive(uint8_t buffer[], uint16_t size) {
+    if (UartDoneT == SET) {
+	/* uart in reception process */
+	UartDoneR = RESET;
+	UartDoneT = RESET;
+	if (HAL_UART_Receive_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
+	    Error_Uart();
+	}
     }
 }
 
@@ -59,5 +67,19 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
 * @retval None
 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
-    UartReady = SET;
+    UartDoneR = SET;
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Uart(void) {
+    /* USER CODE BEGIN Error_Handler_Debug */
+    /* User can add an own implementation to report the HAL error return state */
+    __disable_irq();
+    while (1) {
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+    }
+    /* USER CODE END Error_Handler_Debug */
 }
