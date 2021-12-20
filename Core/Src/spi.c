@@ -42,7 +42,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.Direction = SPI_DIRECTION_1LINE;
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_LSB;
@@ -50,7 +50,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 7;
   hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
@@ -128,27 +128,40 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 
 
 
-uint8_t ops = {
-    0x3A, //0x1F, 0x0A, 0x03
-    0x09, //0x1F, 0x09, 0x00
-    0x06, //0x1f, 0x06, 0x00
-    0x1E, //0x1f, 0x0E, 0x01
-    0x39, //0x1f, 0x09, 0x03
-    0x1B, //0x1f, 0x0B, 0x01
-    0x6E, //0x1f, 0x0E, 0x06
-    0x56, //0x1f, 0x06, 0x05
-    0x7A, //0x1f, 0x0A, 0x07
-    0x38, //0x1f, 0x08, 0x03
-    0x0F  //0x1f, 0x0F, 0x00
+uint8_t buf[3] = {0x1F, 0, 0};
+uint8_t opps[11] = {
+    0x3A, //0x1F0A03
+    0x09, //0x1F0900
+    0x06, //0x1f0600
+    0x1E, //0x1f0E01
+    0x39, //0x1f0903
+    0x1B, //0x1f0B01
+    0x6E, //0x1f0E06
+    0x56, //0x1f0605
+    0x7A, //0x1f0A07
+    0x38, //0x1f0803
+    0x0F  //0x1f0F00
 };
 
 
-// [0..0][0..0][0..0][0111 1010] IN
-uint32_t to_le32(uint8_t data) {
-    return (uint32_t) ( (0x1F << 16) | ((data | 0x0F) << 8) | (data | 0xF0) );
+void adjust2(uint8_t data) {
+    buf[1] = ((data & 0x0F));
+    buf[2] = ((data & 0xF0) >> 4);
 }
 
-// [0000 0000][0001 1111] [1010 0000] [0011 0000] OUT
+void display_init() {
+    HAL_Delay(100);
+    for (int i = 0; i < 11; i++) {
+	adjust2(opps[i]);
+	if (HAL_SPI_Transmit(&hspi2, (uint8_t*)buf, 3, 50) != HAL_OK) {
+	    SPI_Error();
+	}
+    }
+}
+
+void SPI_Error() {
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+}
 
 
 
@@ -156,8 +169,12 @@ uint32_t to_le32(uint8_t data) {
 
 
 
-
-
+// INPUT (0x3A) - [0011 1010]
+// OUTPUT (0x1F0A03) - [0001 1111] [0000 1010] [0000 0011]
+uint32_t adjust(uint8_t data) {
+    return (uint32_t) ( (0x1F << 16) | ((data & 0x0F) << 8) | ((data & 0xF0) >> 4) );
+}
+// [0001 1111] [0000 1010] [0000 0011] OUTPUT (0x1F 0x0A 0x03)
 
 
 

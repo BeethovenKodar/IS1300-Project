@@ -46,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t Buffer[] = "Hello World interrupt!";
+//static uint8_t Buffer[] = "Hello World interrupt!";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,9 +91,9 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+//  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
 //  MX_FREERTOS_Init();
-  /* Start scheduler */
+//  /* Start scheduler */
 //  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
@@ -103,6 +103,8 @@ int main(void)
 //	uart_transmit(Buffer, (uint16_t) 22);
 //	uart_receive(Buffer, (uint16_t) 22);
 	HAL_GPIO_WritePin(White_backlight_GPIO_Port, White_backlight_Pin, GPIO_PIN_SET);
+	display_init();
+	HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

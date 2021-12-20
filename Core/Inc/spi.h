@@ -40,7 +40,10 @@ extern SPI_HandleTypeDef hspi2;
 void MX_SPI2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+uint32_t adjust(uint8_t data);
+void adjust2(uint8_t data);
+void display_init();
+void SPI_Error();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
