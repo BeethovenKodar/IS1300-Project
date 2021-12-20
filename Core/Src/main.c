@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -85,24 +86,26 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_UART5_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  //osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
-  //MX_FREERTOS_Init();
+  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+//  MX_FREERTOS_Init();
   /* Start scheduler */
-  //osKernelStart();
+//  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1) {
-	uart_transmit(Buffer, (uint16_t) 22);
-	uart_receive(Buffer, (uint16_t) 22);
-	/* USER CODE END WHILE */
-	/* USER CODE BEGIN 3 */
+//	uart_transmit(Buffer, (uint16_t) 22);
+//	uart_receive(Buffer, (uint16_t) 22);
+	HAL_GPIO_WritePin(White_backlight_GPIO_Port, White_backlight_Pin, GPIO_PIN_SET);
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
 }
@@ -184,11 +187,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-    /* USER CODE BEGIN Error_Handler_Debug */
+  /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add an own implementation to report the HAL error return state */
     __disable_irq();
     while (1) {}
-    /* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
