@@ -149,6 +149,8 @@ void uart_transmit(uint8_t buffer[], uint16_t size) {
     }
 }
 
+//1010    0101
+
 void uart_receive(uint8_t buffer[], uint16_t size) {
     if (UartDoneT == SET) {
 	/* uart in reception process */

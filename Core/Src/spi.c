@@ -21,7 +21,6 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 SPI_HandleTypeDef hspi2;
@@ -43,7 +42,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
   hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_LSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -78,6 +77,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     /**SPI2 GPIO Configuration
     PC3     ------> SPI2_MOSI
     PB10     ------> SPI2_SCK
+    PB12     ------> SPI2_NSS
     */
     GPIO_InitStruct.Pin = GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -86,7 +86,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -113,10 +113,11 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     /**SPI2 GPIO Configuration
     PC3     ------> SPI2_MOSI
     PB10     ------> SPI2_SCK
+    PB12     ------> SPI2_NSS
     */
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_3);
 
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_12);
 
   /* USER CODE BEGIN SPI2_MspDeInit 1 */
 
@@ -125,71 +126,123 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 }
 
 /* USER CODE BEGIN 1 */
+uint8_t instr[3] = {0x0F, 0, 0};
+			  //0b1000 0000
+const uint8_t DDRAM_L[4] = {0x80, 0xA0, 0xC0, 0xE0};
+const uint8_t RED = 0;
+const uint8_t WHITE = 1;
+const uint8_t GREEN = 2;
+const uint8_t RS0_RW0 = 0x1;
+const uint8_t RS1_RW0 = 0x5;
+const uint16_t CLEAR_DISPLAY = 0x01;
 
 
 
-uint8_t buf[3] = {0x1F, 0, 0};
-uint8_t opps[11] = {
-    0x3A, //0x1F0A03
-    0x09, //0x1F0900
-    0x06, //0x1f0600
-    0x1E, //0x1f0E01
-    0x39, //0x1f0903
-    0x1B, //0x1f0B01
-    0x6E, //0x1f0E06
-    0x56, //0x1f0605
-    0x7A, //0x1f0A07
-    0x38, //0x1f0803
-    0x0F  //0x1f0F00
+uint8_t init_seq[11] = {
+    0x3A, //0x1F0A03	#function set: 	   8 bit data length (RE = 1, REV = 0)
+    0x09, //0x1F0900	#ext function set: 4 line display
+    0x06, //0x1f0600	#entry mode set:   bottom view
+    0x1E, //0x1f0E01	#bias setting:	   BS1 = 1
+    0x39, //0x1f0903	#function set:	   8 bit data length (RE = 0, IS = 1)
+    0x1B, //0x1f0B01	#internal osc:	   BS0 = 1 -> Bias = 1/6
+    0x6E, //0x1f0E06	#follower control: devider on and set value
+    0x56, //0x1f0605	#power control:    booster on and set contrast
+    0x7A, //0x1f0A07	#contrast set:	   set contrast (DB3-DB0 = C3-C0)
+    0x38, //0x1f0803	#functions set:	   8 bit data length (RE = 0, IS = 0)
+    0x0D, //0x1f0E00	#display on:	   display on, cursor on, blink on
 };
 
-
-void adjust2(uint8_t data) {
-    buf[1] = ((data & 0x0F));
-    buf[2] = ((data & 0xF0) >> 4);
-}
-
-void display_init() {
-    HAL_Delay(100);
-    for (int i = 0; i < 11; i++) {
-	adjust2(opps[i]);
-	if (HAL_SPI_Transmit(&hspi2, (uint8_t*)buf, 3, 50) != HAL_OK) {
-	    SPI_Error();
-	}
-    }
-}
 
 void SPI_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 }
 
 
-
-
-
-
-
-// INPUT (0x3A) - [0011 1010]
-// OUTPUT (0x1F0A03) - [0001 1111] [0000 1010] [0000 0011]
-uint32_t adjust(uint8_t data) {
-    return (uint32_t) ( (0x1F << 16) | ((data & 0x0F) << 8) | ((data & 0xF0) >> 4) );
+void set_startbyte(uint8_t nibble) {
+    instr[0] = ((instr[0] & 0x0F) | (nibble << 4));
 }
-// [0001 1111] [0000 1010] [0000 0011] OUTPUT (0x1F 0x0A 0x03)
 
 
+void set_byte(uint8_t byte) {
+    instr[1] = (byte & 0x0F);
+    instr[2] = ((byte & 0xF0) >> 4);
+}
 
 
+void display_set_backlight(uint8_t color) {
+    switch(color) {
+	case 0:
+	  HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
+	  break;
+	case 1:
+	  HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_SET);
+	  break;
+	case 2:
+	  HAL_GPIO_WritePin(Green_Backlight_GPIO_Port, Green_Backlight_Pin, GPIO_PIN_SET);
+	  break;
+    }
+}
 
 
+void display_hw_reset() {
+    HAL_Delay(5);
+    HAL_GPIO_WritePin(Disp_Reset_GPIO_Port, Disp_Reset_Pin, GPIO_PIN_RESET);
+    HAL_Delay(10);
+    HAL_GPIO_WritePin(Disp_Reset_GPIO_Port, Disp_Reset_Pin, GPIO_PIN_SET);
+    HAL_Delay(1);
+}
 
 
+void send() {
+    if (HAL_SPI_Transmit(&hspi2, (uint8_t*)instr, 3, 50) != HAL_OK) {
+	SPI_Error();
+    }
+}
 
 
+void display_clear() {
+    set_startbyte(RS0_RW0);
+    set_byte(CLEAR_DISPLAY);
+    send();
+}
 
 
+void display_init() {
 
+    display_hw_reset();
 
+    display_set_backlight(WHITE);
 
+    set_startbyte(RS0_RW0);
+    for (int i = 0; i < 11; i++) {
+	set_byte(init_seq[i]);
+	send();
+	HAL_Delay(1);
+    }
+
+    display_clear();
+}
+
+void display_set_line(uint8_t line) {
+    set_startbyte(RS0_RW0);
+    set_byte(DDRAM_L[line - 1]);
+    send();
+}
+
+void display_write(uint8_t c) {
+    set_startbyte(RS1_RW0);
+    set_byte(c);
+    send();
+}
+
+void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
+    display_set_line(line);
+    uint8_t i = 0;
+    while (i < len) {
+	display_write(buf[i++]);
+	HAL_Delay(1);
+    }
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

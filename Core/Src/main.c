@@ -88,6 +88,16 @@ int main(void)
   MX_UART5_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+  display_init();
+  uint8_t word1[] = "I";
+  uint8_t word2[] = "LOVE";
+  uint8_t word3[] = "YOU";
+  uint8_t word4[] = "<3<3<3";
+  display_write_line(word1, 1, 1);
+  display_write_line(word2, 4, 2);
+  display_write_line(word3, 3, 3);
+  display_write_line(word4, 6, 4);
+//  display_write();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -102,9 +112,6 @@ int main(void)
     while (1) {
 //	uart_transmit(Buffer, (uint16_t) 22);
 //	uart_receive(Buffer, (uint16_t) 22);
-	HAL_GPIO_WritePin(White_backlight_GPIO_Port, White_backlight_Pin, GPIO_PIN_SET);
-	display_init();
-	HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
