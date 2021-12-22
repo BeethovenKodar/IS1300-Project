@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "rtc.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -87,16 +88,22 @@ int main(void)
   MX_GPIO_Init();
   MX_UART5_Init();
   MX_SPI2_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   display_init();
-  uint8_t word1[] = "I";
-  uint8_t word2[] = "LOVE";
-  uint8_t word3[] = "YOU";
-  uint8_t word4[] = "<3<3<3";
-  display_write_line(word1, 1, 1);
-  display_write_line(word2, 4, 2);
-  display_write_line(word3, 3, 3);
-  display_write_line(word4, 6, 4);
+
+  uint8_t time[8] = "23:59:55";
+  rtc_set_time(time);
+  HAL_Delay(2000);
+  uint8_t buf[8];
+  while (1) {
+      rtc_get_time(buf);
+      display_write_line(buf, 8, 1);
+      uart_transmit(buf, 8);
+      HAL_Delay(1);
+      uart_transmit((uint8_t*)"\r\n", 2);
+      HAL_Delay(1000);
+  }
 //  display_write();
   /* USER CODE END 2 */
 
@@ -137,9 +144,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;

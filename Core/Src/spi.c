@@ -127,7 +127,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 
 /* USER CODE BEGIN 1 */
 uint8_t instr[3] = {0x0F, 0, 0};
-			  //0b1000 0000
+
 const uint8_t DDRAM_L[4] = {0x80, 0xA0, 0xC0, 0xE0};
 const uint8_t RED = 0;
 const uint8_t WHITE = 1;
@@ -149,7 +149,7 @@ uint8_t init_seq[11] = {
     0x56, //0x1f0605	#power control:    booster on and set contrast
     0x7A, //0x1f0A07	#contrast set:	   set contrast (DB3-DB0 = C3-C0)
     0x38, //0x1f0803	#functions set:	   8 bit data length (RE = 0, IS = 0)
-    0x0D, //0x1f0E00	#display on:	   display on, cursor on, blink on
+    0x0C, //0x1f0E00	#display on:	   display on, cursor on, blink on
 };
 
 
@@ -157,12 +157,22 @@ void SPI_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 }
 
-
+/**
+  * @brief Set the R/W bit and RS bit in the start byte.
+  * @param nibble: the sequence to set.
+  * @note  0b1|R/W|RS|0
+  * @retval None
+  */
 void set_startbyte(uint8_t nibble) {
     instr[0] = ((instr[0] & 0x0F) | (nibble << 4));
 }
 
-
+/**
+  * @brief Set the RS and R/W bit in the start byte.
+  * @param nibble: the sequence to set.
+  * @note  1|RS|R/W|0
+  * @retval None
+  */
 void set_byte(uint8_t byte) {
     instr[1] = (byte & 0x0F);
     instr[2] = ((byte & 0xF0) >> 4);

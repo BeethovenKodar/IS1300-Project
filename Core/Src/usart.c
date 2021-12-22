@@ -164,10 +164,12 @@ void uart_receive(uint8_t buffer[], uint16_t size) {
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
     UartDoneT = SET;
+    UartDoneR = SET;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
     UartDoneR = SET;
+    UartDoneT = SET;
 }
 
 void Error_Uart(void) {

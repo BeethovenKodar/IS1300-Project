@@ -40,22 +40,6 @@ extern SPI_HandleTypeDef hspi2;
 void MX_SPI2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-/**
-  * @brief Set the R/W bit and RS bit in the start byte.
-  * @param nibble: the sequence to set.
-  * @note  0b1|R/W|RS|0
-  * @retval None
-  */
-void set_startbyte(uint8_t nibble);
-
-/**
-  * @brief Set the RS and R/W bit in the start byte.
-  * @param nibble: the sequence to set.
-  * @note  1|RS|R/W|0
-  * @retval None
-  */
-void set_byte(uint8_t byte);
-
 void display_init();
 void display_write_line(uint8_t *str, uint8_t len, uint8_t line);
 /* USER CODE END Prototypes */
