@@ -160,7 +160,8 @@ void SPI_Error() {
 /**
   * @brief Set the R/W bit and RS bit in the start byte.
   * @param nibble: the sequence to set.
-  * @note  0b1|R/W|RS|0
+  * @note  nibble in format of "0|RS|R/W|1" (MSB first representation).
+  * Placed at bits 4-7 in the startbyte.
   * @retval None
   */
 void set_startbyte(uint8_t nibble) {
@@ -168,9 +169,10 @@ void set_startbyte(uint8_t nibble) {
 }
 
 /**
-  * @brief Set the RS and R/W bit in the start byte.
-  * @param nibble: the sequence to set.
-  * @note  1|RS|R/W|0
+  * @brief Set the data byte to send, split into two separate bytes
+  * to follow convention.
+  * @param byte: the byte to set up transmission for
+  * @note LSB first ordering in the instruction array instr[].
   * @retval None
   */
 void set_byte(uint8_t byte) {
@@ -178,7 +180,10 @@ void set_byte(uint8_t byte) {
     instr[2] = ((byte & 0xF0) >> 4);
 }
 
-
+/**
+ * @brief This functions sets the backlight color of the display.
+ * @param color: color mapped to an integer used in the switch statement below.
+ */
 void display_set_backlight(uint8_t color) {
     switch(color) {
 	case 0:
@@ -193,7 +198,10 @@ void display_set_backlight(uint8_t color) {
     }
 }
 
-
+/**
+ * @brief Before using the display it should be reset by toggling the
+ * Disp_Reset pin: high->low->high with sufficient delays in between.
+ */
 void display_hw_reset() {
     HAL_Delay(5);
     HAL_GPIO_WritePin(Disp_Reset_GPIO_Port, Disp_Reset_Pin, GPIO_PIN_RESET);
@@ -202,21 +210,28 @@ void display_hw_reset() {
     HAL_Delay(1);
 }
 
-
+/**
+ * @brief sends the current data in the instructions array instr[] over SPI.
+ */
 void send() {
     if (HAL_SPI_Transmit(&hspi2, (uint8_t*)instr, 3, 50) != HAL_OK) {
 	SPI_Error();
     }
 }
 
-
+/**
+ * @brief Sets all segments of the display to 20H, i.e. invisible character.
+ */
 void display_clear() {
     set_startbyte(RS0_RW0);
     set_byte(CLEAR_DISPLAY);
     send();
 }
 
-
+/**
+ * @brief Initialization routine to set up the running conditions for the display.
+ * @note Sequence needed is predefined. Hardware reset needed first.
+ */
 void display_init() {
 
     display_hw_reset();
@@ -251,6 +266,10 @@ void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
     while (i < len) {
 	display_write(buf[i++]);
 	HAL_Delay(1);
+    }
+    while (i < 10) {
+	display_write((uint8_t) 0x20);	//set remaining segments to blank
+	i++;
     }
 }
 /* USER CODE END 1 */

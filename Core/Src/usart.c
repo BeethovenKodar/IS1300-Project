@@ -22,7 +22,6 @@
 
 /* USER CODE BEGIN 0 */
 /* private defines */
-#define BUFFERSIZE 22
 
 /* private variables */
 static ITStatus UartDoneT = SET;
@@ -138,44 +137,74 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+/**
+ * @brief Error function called upon error generated
+ * during UART implementations.
+ * @note Activates the LD2 led and loops infinitely.
+ */
+void UART_Error(void) {
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+    while (1) {}
+}
+
+/**
+  * @brief UART transmission initializer
+  * @param buffer: the buffer of data to transmit.
+  * @param size: amount of bytes to transmit.
+  * @note Starting the interrupt handler for transmitting.
+  * Not allowed to receive if transmission not finished.
+  * @retval None
+  */
 void uart_transmit(uint8_t buffer[], uint16_t size) {
     if (UartDoneR == SET) {
 	/* uart in reception process */
 	UartDoneR = RESET;
 	UartDoneT = RESET;
 	if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
-	    Error_Uart();
+	    UART_Error();
 	}
     }
 }
 
-//1010    0101
-
+/**
+  * @brief UART reception initializer.
+  * @param buffer: the buffer to place incoming data.
+  * @param size: amount of bytes to receive.
+  * @note Starting the interrupt handler for receiving.
+  * Not allowed to transmit if reception not finished.
+  * @retval None.
+  */
 void uart_receive(uint8_t buffer[], uint16_t size) {
     if (UartDoneT == SET) {
 	/* uart in reception process */
 	UartDoneR = RESET;
 	UartDoneT = RESET;
 	if (HAL_UART_Receive_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
-	    Error_Uart();
+	    UART_Error();
 	}
     }
 }
 
+/**
+  * @brief UART transfer completion callback.
+  * @param UartHandle: UART handle to use.
+  * @note Reporting that the tranmission over UART is complete.
+  * @retval None
+  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
     UartDoneT = SET;
     UartDoneR = SET;
 }
 
+/**
+* @brief UART reception completion callback.
+* @param UartHandle: UART handle to use.
+* @note Reporting that the reception over UART is complete.
+* @retval None.
+*/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
     UartDoneR = SET;
     UartDoneT = SET;
-}
-
-void Error_Uart(void) {
-    while (1) {
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-    }
 }
 /* USER CODE END 1 */
 

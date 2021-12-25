@@ -40,43 +40,8 @@ extern UART_HandleTypeDef huart5;
 void MX_UART5_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-/**
-  * @brief UART transmission initializer
-  * @param buffer: the buffer to use
-  * @note Starting the interrupt handler for transmitting.
-  * @retval None
-  */
 void uart_transmit(uint8_t buffer[], uint16_t size);
-
-/**
-  * @brief UART reception initializer
-  * @param buffer: the buffer to use
-  * @note Starting the interrupt handler for receiving.
-  * @retval None
-  */
 void uart_receive(uint8_t buffer[], uint16_t size);
-
-/**
-  * @brief UART transfer competed callback
-  * @param UartHandle: UART handle
-  * @note Reporting that the tranmission over UART is complete.
-  * @retval None
-  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle);
-
-/**
-* @brief UART reception completed callback
-* @param UartHandle: UART handle
-* @note Reporting that the reception over UART is complete.
-* @retval None
-*/
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
-
-/**
-  * @brief  This function is executed in case of error occurrence by own implementations over UART.
-  * @retval None
-  */
-void Error_Uart(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

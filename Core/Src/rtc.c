@@ -130,27 +130,44 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
-
+/**
+ * @brief Error function called upon error generated
+ * during RTC implementations.
+ * @note Activates the LD2 led and loops infinitely.
+ */
 void RTC_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+    while (1) {}
 }
 
+/**
+ * @brief Real Time Clock (RTC) function to set the RTC time.
+ * @param tstr: time string of format "hh:mm:ss".
+ * @retval None.
+ */
 void rtc_set_time(uint8_t tstr[]) {
     RTC_TimeTypeDef time = {0};
     char *del = ":";
 
-    char *token = strtok((char*)tstr, ":");
+    char *token = strtok((char*)tstr, del); //tokenize tstr on given delimiter
     time.Hours = atoi(token);
     token = strtok(NULL, del);
     time.Minutes = atoi(token);
     token = strtok(NULL, del);
     time.Seconds = atoi(token);
 
-    HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+    if (HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN) != HAL_OK) {
+	RTC_Error();
+    }
 }
 
-uint8_t *rtc_get_time(uint8_t buf[]) {
+/**
+  * @brief Real Time Clock (RTC) function to get the current time.
+  * @param buffer: buffer to store the current time.
+  * @note GetDate() is called to properly retreive the time.
+  * @retval None.
+  */
+void rtc_get_time(uint8_t buffer[]) {
     RTC_TimeTypeDef time = {0};
     RTC_DateTypeDef date = {0};
 
@@ -162,8 +179,7 @@ uint8_t *rtc_get_time(uint8_t buf[]) {
 	RTC_Error();
     }
 
-    sprintf((char*)buf, "%02d:%02d:%02d", time.Hours, time.Minutes, time.Seconds);
-    return buf;
+    sprintf((char*)buffer, "%02d:%02d:%02d", time.Hours, time.Minutes, time.Seconds);
 }
 
 

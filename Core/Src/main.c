@@ -47,7 +47,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//static uint8_t Buffer[] = "Hello World interrupt!";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,12 +88,16 @@ int main(void)
   MX_UART5_Init();
   MX_SPI2_Init();
   MX_RTC_Init();
+
   /* USER CODE BEGIN 2 */
   display_init();
-
-  uint8_t time[8] = "23:59:55";
+  uint8_t time[8];
+  uart_transmit((uint8_t*)"set time HH:MM:SS\r\n", 19);
+  HAL_Delay(1);
+  uart_receive(time, 8);
+  HAL_Delay(5000);
   rtc_set_time(time);
-  HAL_Delay(2000);
+
   uint8_t buf[8];
   while (1) {
       rtc_get_time(buf);
@@ -104,23 +107,19 @@ int main(void)
       uart_transmit((uint8_t*)"\r\n", 2);
       HAL_Delay(1000);
   }
-//  display_write();
   /* USER CODE END 2 */
 
   /* Init scheduler */
-//  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
-//  MX_FREERTOS_Init();
-//  /* Start scheduler */
-//  osKernelStart();
+  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     while (1) {
-//	uart_transmit(Buffer, (uint16_t) 22);
-//	uart_receive(Buffer, (uint16_t) 22);
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
