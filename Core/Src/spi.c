@@ -129,15 +129,17 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 uint8_t instr[3] = {0x0F, 0, 0};
 
 const uint8_t DDRAM_L[4] = {0x80, 0xA0, 0xC0, 0xE0};
+
 const uint8_t RED = 0;
 const uint8_t WHITE = 1;
 const uint8_t GREEN = 2;
+
 const uint8_t RS0_RW0 = 0x1;
 const uint8_t RS1_RW0 = 0x5;
 const uint16_t CLEAR_DISPLAY = 0x01;
 
 
-
+/* initialization sequence to start the display */
 uint8_t init_seq[11] = {
     0x3A, //0x1F0A03	#function set: 	   8 bit data length (RE = 1, REV = 0)
     0x09, //0x1F0900	#ext function set: 4 line display
@@ -149,12 +151,17 @@ uint8_t init_seq[11] = {
     0x56, //0x1f0605	#power control:    booster on and set contrast
     0x7A, //0x1f0A07	#contrast set:	   set contrast (DB3-DB0 = C3-C0)
     0x38, //0x1f0803	#functions set:	   8 bit data length (RE = 0, IS = 0)
-    0x0C, //0x1f0E00	#display on:	   display on, cursor on, blink on
+    0x0C, //0x1f0E00	#display on:	   display on, cursor off, blink off
 };
 
-
+/**
+ * @brief Error function that handles any error produced while
+ * using SPI communication.
+ * @note Enables LD2 LED on the Nucleo board and loops infinitely.
+ */
 void SPI_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+    while(1) {}
 }
 
 /**
@@ -230,7 +237,7 @@ void display_clear() {
 
 /**
  * @brief Initialization routine to set up the running conditions for the display.
- * @note Sequence needed is predefined. Hardware reset needed first.
+ * @note Sequence needed is predefined. Hardware reset required beforehand.
  */
 void display_init() {
 
@@ -248,27 +255,44 @@ void display_init() {
     display_clear();
 }
 
+/**
+ * @brief Instructs the display to target the line specified.
+ * @param line: the line to target, 1, 2, 3 or 4.
+ */
 void display_set_line(uint8_t line) {
     set_startbyte(RS0_RW0);
     set_byte(DDRAM_L[line - 1]);
     send();
 }
 
-void display_write(uint8_t c) {
+/**
+ * @brief writes the current instruction loaded to the display.
+ * @param the data to send.
+ */
+void display_write(uint8_t data) {
     set_startbyte(RS1_RW0);
-    set_byte(c);
+    set_byte(data);
     send();
+    set_startbyte(RS0_RW0);
 }
 
+/**
+ * @brief Receives a buffer to write to the display.
+ * @param buf: the buffer of data to send.
+ * @param len: length of the buffer.
+ * @param line: the line of the display to target.
+ */
 void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
     display_set_line(line);
+
     uint8_t i = 0;
     while (i < len) {
 	display_write(buf[i++]);
 	HAL_Delay(1);
     }
-    while (i < 10) {
-	display_write((uint8_t) 0x20);	//set remaining segments to blank
+
+    while (i < 10) { //set remaining segments to blank
+	display_write((uint8_t) 0x20);
 	i++;
     }
 }

@@ -90,23 +90,25 @@ int main(void)
   MX_RTC_Init();
 
   /* USER CODE BEGIN 2 */
-  display_init();
-  uint8_t time[8];
-  uart_transmit((uint8_t*)"set time HH:MM:SS\r\n", 19);
-  HAL_Delay(1);
-  uart_receive(time, 8);
-  HAL_Delay(5000);
-  rtc_set_time(time);
+    display_init();
+    uint8_t time[8];
+    uart_transmit((uint8_t*)"0x00", 1);
+    HAL_Delay(1);
+    uart_transmit((uint8_t*)"set time HH:MM:SS\r\n", 19);
+    HAL_Delay(1);
+    uart_receive(time, 8);
+    HAL_Delay(5000);
+    rtc_set_time(time);
 
-  uint8_t buf[8];
-  while (1) {
-      rtc_get_time(buf);
-      display_write_line(buf, 8, 1);
-      uart_transmit(buf, 8);
-      HAL_Delay(1);
-      uart_transmit((uint8_t*)"\r\n", 2);
-      HAL_Delay(1000);
-  }
+    uint8_t current_time[8];
+    while (1) {
+	rtc_get_time(current_time);
+	display_write_line(current_time, 8, 1);
+	uart_transmit(current_time, 8);
+	HAL_Delay(1);
+	uart_transmit((uint8_t*)"\r\n", 2);
+	HAL_Delay(1000);
+    }
   /* USER CODE END 2 */
 
   /* Init scheduler */

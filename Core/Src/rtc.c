@@ -132,8 +132,8 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 /* USER CODE BEGIN 1 */
 /**
  * @brief Error function called upon error generated
- * during RTC implementations.
- * @note Activates the LD2 led and loops infinitely.
+ * during exeuction of RTC functions.
+ * @note Activates the LD2 led on the Nucleo board and loops infinitely.
  */
 void RTC_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);

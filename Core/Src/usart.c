@@ -139,8 +139,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 /* USER CODE BEGIN 1 */
 /**
  * @brief Error function called upon error generated
- * during UART implementations.
- * @note Activates the LD2 led and loops infinitely.
+ * during UART communication.
+ * @note Enables the LD2 LED on the Nucleo board and loops infinitely.
  */
 void UART_Error(void) {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
