@@ -30,11 +30,9 @@ void MX_SPI2_Init(void)
 {
 
   /* USER CODE BEGIN SPI2_Init 0 */
-
   /* USER CODE END SPI2_Init 0 */
 
   /* USER CODE BEGIN SPI2_Init 1 */
-
   /* USER CODE END SPI2_Init 1 */
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
@@ -55,7 +53,6 @@ void MX_SPI2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SPI2_Init 2 */
-
   /* USER CODE END SPI2_Init 2 */
 
 }
@@ -67,7 +64,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
   if(spiHandle->Instance==SPI2)
   {
   /* USER CODE BEGIN SPI2_MspInit 0 */
-
   /* USER CODE END SPI2_MspInit 0 */
     /* SPI2 clock enable */
     __HAL_RCC_SPI2_CLK_ENABLE();
@@ -94,7 +90,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN SPI2_MspInit 1 */
-
   /* USER CODE END SPI2_MspInit 1 */
   }
 }
@@ -105,7 +100,6 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
   if(spiHandle->Instance==SPI2)
   {
   /* USER CODE BEGIN SPI2_MspDeInit 0 */
-
   /* USER CODE END SPI2_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_SPI2_CLK_DISABLE();
@@ -120,7 +114,6 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_12);
 
   /* USER CODE BEGIN SPI2_MspDeInit 1 */
-
   /* USER CODE END SPI2_MspDeInit 1 */
   }
 }
@@ -260,7 +253,6 @@ void display_init() {
  * @param line: the line to target, 1, 2, 3 or 4.
  */
 void display_set_line(uint8_t line) {
-    set_startbyte(RS0_RW0);
     set_byte(DDRAM_L[line - 1]);
     send();
 }
@@ -291,7 +283,7 @@ void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
 	HAL_Delay(1);
     }
 
-    while (i < 10) { //set remaining segments to blank
+    while (i < 10) { //set remaining segments to blank (0x20)
 	display_write((uint8_t) 0x20);
 	i++;
     }

@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
 #include "rtc.h"
 #include "spi.h"
 #include "usart.h"
@@ -88,26 +89,33 @@ int main(void)
   MX_UART5_Init();
   MX_SPI2_Init();
   MX_RTC_Init();
-
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
     display_init();
     uint8_t time[8];
-    uart_transmit((uint8_t*)"0x00", 1);
-    HAL_Delay(1);
     uart_transmit((uint8_t*)"set time HH:MM:SS\r\n", 19);
     HAL_Delay(1);
     uart_receive(time, 8);
-    HAL_Delay(5000);
+    HAL_Delay(2000);
     rtc_set_time(time);
 
+    HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+
     uint8_t current_time[8];
+    uint8_t voltage[4];
     while (1) {
+	adc_read_pot(voltage);
 	rtc_get_time(current_time);
 	display_write_line(current_time, 8, 1);
-	uart_transmit(current_time, 8);
+	HAL_Delay(1);
+	display_write_line(voltage, strlen((char*)voltage), 2);
+//	uart_transmit(current_time, 8);
+	HAL_Delay(1);
+//	uart_transmit((uint8_t*)"\r\n", 2);
+	uart_transmit(voltage, 4);
 	HAL_Delay(1);
 	uart_transmit((uint8_t*)"\r\n", 2);
-	HAL_Delay(1000);
+	HAL_Delay(998);
     }
   /* USER CODE END 2 */
 
@@ -122,6 +130,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1) {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
     }
   /* USER CODE END 3 */
