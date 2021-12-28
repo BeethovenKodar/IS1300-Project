@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "stdlib.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -102,19 +103,22 @@ int main(void)
     HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
     uint8_t current_time[8];
-    uint8_t voltage[4];
+    uint16_t voltage;
     while (1) {
-	adc_read_pot(voltage);
+	voltage = adc_read_pot(voltage);
 	rtc_get_time(current_time);
+
+	char vol_str[5];
+	itoa(voltage, vol_str, 10);
+
 	display_write_line(current_time, 8, 1);
 	HAL_Delay(1);
-	display_write_line(voltage, strlen((char*)voltage), 2);
-//	uart_transmit(current_time, 8);
-	HAL_Delay(1);
-//	uart_transmit((uint8_t*)"\r\n", 2);
-	uart_transmit(voltage, 4);
+	display_write_line((uint8_t*)vol_str, strlen((char*)vol_str), 2);
+
+	uart_transmit((uint8_t*)vol_str, 4);
 	HAL_Delay(1);
 	uart_transmit((uint8_t*)"\r\n", 2);
+
 	HAL_Delay(998);
     }
   /* USER CODE END 2 */

@@ -10,5 +10,5 @@ spi.c:216:6:send	8	static
 spi.c:225:6:display_clear	8	static
 spi.c:235:6:display_init	16	static
 spi.c:255:6:display_set_line	16	static
-spi.c:265:6:display_write	16	static
-spi.c:278:6:display_write_line	24	static
+spi.c:264:6:display_write	16	static
+spi.c:277:6:display_write_line	24	static

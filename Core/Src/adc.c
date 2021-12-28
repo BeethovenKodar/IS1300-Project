@@ -145,22 +145,17 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-#include "stdlib.h"
-#include "string.h"
+
 /**
  * @brief Reads the analog voltage of the potentimeter located on the shield
  * and returns a digital conversion.
- * @param buffer: the location to store the value retrieved, 4 pieces.
+ * @param None.
+ * @retval The current voltage level.
  */
-void adc_read_pot(uint8_t *buffer) {
-    uint16_t voltage_level;
-
+uint16_t adc_read_pot() {
     HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1, 2);
-    voltage_level = HAL_ADC_GetValue(&hadc1);
-    char temp[4];
-    itoa(voltage_level, temp, 10);
-    memcpy(buffer, (uint8_t*)temp, 4);
+    HAL_ADC_PollForConversion(&hadc1, 1);
+    return HAL_ADC_GetValue(&hadc1);
 }
 
 

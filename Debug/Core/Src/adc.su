@@ -1,4 +1,4 @@
 adc.c:29:6:MX_ADC1_Init	48	static
 adc.c:85:6:HAL_ADC_MspInit	184	static
 adc.c:127:6:HAL_ADC_MspDeInit	16	static
-adc.c:155:6:adc_read_pot	24	static
+adc.c:155:10:adc_read_pot	8	static
