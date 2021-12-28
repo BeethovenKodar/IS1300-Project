@@ -149,7 +149,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 /**
  * @brief Reads the analog voltage of the potentimeter located on the shield
  * and returns a digital conversion.
- * @param None.
  * @retval The current voltage level.
  */
 uint16_t adc_read_pot() {
@@ -157,26 +156,6 @@ uint16_t adc_read_pot() {
     HAL_ADC_PollForConversion(&hadc1, 1);
     return HAL_ADC_GetValue(&hadc1);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* USER CODE END 1 */
 

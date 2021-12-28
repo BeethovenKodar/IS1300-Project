@@ -23,6 +23,7 @@
 #include "adc.h"
 #include "rtc.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -91,35 +92,42 @@ int main(void)
   MX_SPI2_Init();
   MX_RTC_Init();
   MX_ADC1_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
+
+
+
+
     display_init();
-    uint8_t time[8];
+    uint8_t start_time[8];
     uart_transmit((uint8_t*)"set time HH:MM:SS\r\n", 19);
     HAL_Delay(1);
-    uart_receive(time, 8);
-    HAL_Delay(2000);
-    rtc_set_time(time);
+    uart_receive(start_time, 8);
+    HAL_Delay(5000);
+    rtc_set_time(start_time);
 
     HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
 
     uint8_t current_time[8];
     uint16_t voltage;
+    char vol_str[5];
     while (1) {
 	voltage = adc_read_pot(voltage);
 	rtc_get_time(current_time);
+	tim_set_duty_cycle(voltage);
 
-	char vol_str[5];
 	itoa(voltage, vol_str, 10);
 
 	display_write_line(current_time, 8, 1);
 	HAL_Delay(1);
 	display_write_line((uint8_t*)vol_str, strlen((char*)vol_str), 2);
 
-	uart_transmit((uint8_t*)vol_str, 4);
-	HAL_Delay(1);
-	uart_transmit((uint8_t*)"\r\n", 2);
+//	uart_transmit((uint8_t*)vol_str, 4);
+//	HAL_Delay(1);
+//	uart_transmit((uint8_t*)"\r\n", 2);
 
-	HAL_Delay(998);
+	HAL_Delay(97);
     }
   /* USER CODE END 2 */
 

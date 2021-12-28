@@ -187,7 +187,7 @@ void uart_receive(uint8_t buffer[], uint16_t size) {
 
 /**
   * @brief UART transfer completion callback.
-  * @param UartHandle: UART handle to use.
+  * @param UartHandle: UART handle to which the interrupt is sent.
   * @note Reporting that the tranmission over UART is complete.
   * @retval None
   */
@@ -198,7 +198,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
 
 /**
 * @brief UART reception completion callback.
-* @param UartHandle: UART handle to use.
+* @param UartHandle: UART handle to which the interrupt is sent.
 * @note Reporting that the reception over UART is complete.
 * @retval None.
 */

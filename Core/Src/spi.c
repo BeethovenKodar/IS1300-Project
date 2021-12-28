@@ -21,6 +21,7 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
+#include "tim.h"
 /* USER CODE END 0 */
 
 SPI_HandleTypeDef hspi2;
@@ -187,14 +188,15 @@ void set_byte(uint8_t byte) {
 void display_set_backlight(uint8_t color) {
     switch(color) {
 	case 0:
-	  HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
+	    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+//	    HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
 	  break;
 	case 1:
-	  HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_SET);
-	  break;
+	    HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_SET);
+	    break;
 	case 2:
-	  HAL_GPIO_WritePin(Green_Backlight_GPIO_Port, Green_Backlight_Pin, GPIO_PIN_SET);
-	  break;
+	    HAL_GPIO_WritePin(Green_Backlight_GPIO_Port, Green_Backlight_Pin, GPIO_PIN_SET);
+	    break;
     }
 }
 
@@ -236,7 +238,7 @@ void display_init() {
 
     display_hw_reset();
 
-    display_set_backlight(WHITE);
+    display_set_backlight(RED);
 
     set_startbyte(RS0_RW0);
     for (int i = 0; i < 11; i++) {
