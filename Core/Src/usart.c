@@ -24,8 +24,6 @@
 /* private defines */
 
 /* private variables */
-static ITStatus UartDoneT = SET;
-static ITStatus UartDoneR = SET;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart5;
@@ -100,9 +98,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Alternate = GPIO_AF8_UART5;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    /* UART5 interrupt Init */
-    HAL_NVIC_SetPriority(UART5_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(UART5_IRQn);
   /* USER CODE BEGIN UART5_MspInit 1 */
 
   /* USER CODE END UART5_MspInit 1 */
@@ -128,8 +123,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);
 
-    /* UART5 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(UART5_IRQn);
   /* USER CODE BEGIN UART5_MspDeInit 1 */
 
   /* USER CODE END UART5_MspDeInit 1 */
@@ -151,18 +144,11 @@ void UART_Error(void) {
   * @brief UART transmission initializer
   * @param buffer: the buffer of data to transmit.
   * @param size: amount of bytes to transmit.
-  * @note Starting the interrupt handler for transmitting.
-  * Not allowed to receive if transmission not finished.
-  * @retval None
   */
 void uart_transmit(uint8_t buffer[], uint16_t size) {
-    if (UartDoneR == SET) {
-	/* uart in reception process */
-	UartDoneR = RESET;
-	UartDoneT = RESET;
-	if (HAL_UART_Transmit_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
-	    UART_Error();
-	}
+    /* uart in reception process */
+    if (HAL_UART_Transmit(&huart5, buffer, size, 10) != HAL_OK) {
+	UART_Error();
     }
 }
 
@@ -170,41 +156,17 @@ void uart_transmit(uint8_t buffer[], uint16_t size) {
   * @brief UART reception initializer.
   * @param buffer: the buffer to place incoming data.
   * @param size: amount of bytes to receive.
-  * @note Starting the interrupt handler for receiving.
-  * Not allowed to transmit if reception not finished.
-  * @retval None.
+  * @note feeds back one character at a time to user.
   */
 void uart_receive(uint8_t buffer[], uint16_t size) {
-    if (UartDoneT == SET) {
-	/* uart in reception process */
-	UartDoneR = RESET;
-	UartDoneT = RESET;
-	if (HAL_UART_Receive_IT(&huart5, (uint8_t*)buffer, size) != HAL_OK) {
+    /* uart in reception process */
+    uint8_t i = 0;
+    while (i < size) {
+	if (HAL_UART_Receive(&huart5, &buffer[i], 1, 0xFFFF) != HAL_OK) {
 	    UART_Error();
 	}
+	uart_transmit(&buffer[i++], 1);
     }
-}
-
-/**
-  * @brief UART transfer completion callback.
-  * @param UartHandle: UART handle to which the interrupt is sent.
-  * @note Reporting that the tranmission over UART is complete.
-  * @retval None
-  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle) {
-    UartDoneT = SET;
-    UartDoneR = SET;
-}
-
-/**
-* @brief UART reception completion callback.
-* @param UartHandle: UART handle to which the interrupt is sent.
-* @note Reporting that the reception over UART is complete.
-* @retval None.
-*/
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle) {
-    UartDoneR = SET;
-    UartDoneT = SET;
 }
 /* USER CODE END 1 */
 

@@ -1,3 +1,6 @@
-freertos.c:85:6:MX_FREERTOS_Init	8	static
-freertos.c:123:6:StartDefaultTask	24	static
-freertos.c:144:6:startDigitalClock	24	static
+freertos.c:150:6:MX_FREERTOS_Init	8	static
+freertos.c:197:6:StartDefaultTask	16	static
+freertos.c:213:6:digitalClockEntry	64	static
+freertos.c:254:6:backlightEntry	32	static
+freertos.c:282:6:displayEntry	32	static
+freertos.c:319:6:uartEntry	32	static

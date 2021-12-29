@@ -124,10 +124,6 @@ uint8_t instr[3] = {0x0F, 0, 0};
 
 const uint8_t DDRAM_L[4] = {0x80, 0xA0, 0xC0, 0xE0};
 
-const uint8_t RED = 0;
-const uint8_t WHITE = 1;
-const uint8_t GREEN = 2;
-
 const uint8_t RS0_RW0 = 0x1;
 const uint8_t RS1_RW0 = 0x5;
 const uint16_t CLEAR_DISPLAY = 0x01;
@@ -201,6 +197,15 @@ void display_set_backlight(uint8_t color) {
 }
 
 /**
+ * @brief Resets any active backlight of the display.
+ * @note Not including RED, because of PWM.
+ */
+void display_reset_backlight() {
+    HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Green_Backlight_GPIO_Port, Green_Backlight_Pin, GPIO_PIN_RESET);
+}
+
+/**
  * @brief Before using the display it should be reset by toggling the
  * Disp_Reset pin: high->low->high with sufficient delays in between.
  */
@@ -237,8 +242,6 @@ void display_clear() {
 void display_init() {
 
     display_hw_reset();
-
-    display_set_backlight(RED);
 
     set_startbyte(RS0_RW0);
     for (int i = 0; i < 11; i++) {

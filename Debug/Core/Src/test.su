@@ -1,0 +1,4 @@
+test.c:19:6:test_PWM	16	static
+test.c:41:6:test_backlight	8	static
+test.c:60:6:test_display	32	static
+test.c:95:6:main_test	8	static

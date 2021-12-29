@@ -171,6 +171,7 @@ const uint16_t MAX_VALUE = 4067;
  */
 void tim_set_duty_cycle(uint16_t voltage) {
     /* "or 1" syntax to never allow for 0% duty cycle */
+  //voltage/MAX_VALUE) * 100
     uint32_t new_dc = (uint32_t)((voltage * 100)/MAX_VALUE | 1);
 
     htim8.Instance->CCR2 = new_dc;
