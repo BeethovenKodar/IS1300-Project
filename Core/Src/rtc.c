@@ -131,8 +131,8 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 
 /* USER CODE BEGIN 1 */
 /**
- * @brief Error function called upon error generated
- * during exeuction of RTC functions.
+ * @brief Called when an error generated during RTC interaction has
+ * been detected.
  * @note Activates the LD2 led on the Nucleo board and loops infinitely.
  */
 void RTC_Error() {
@@ -141,9 +141,8 @@ void RTC_Error() {
 }
 
 /**
- * @brief Real Time Clock (RTC) function to set the RTC time.
- * @param tstr: time string of format "hh:mm:ss".
- * @retval None.
+ * @brief Set the RTC time.
+ * @param tstr[in]: time string on format "HH:MM:SS".
  */
 void rtc_set_time(uint8_t tstr[]) {
     RTC_TimeTypeDef time = {0};
@@ -162,10 +161,9 @@ void rtc_set_time(uint8_t tstr[]) {
 }
 
 /**
-  * @brief Real Time Clock (RTC) function to get the current time.
-  * @param buffer: buffer to store the current time.
-  * @note GetDate() is called to properly retreive the time.
-  * @retval None.
+  * @brief Retrieval function for the current RTC time.
+  * @param buffer[out]: buffer to store the current time.
+  * @note Date function is called to properly retreive the time.
   */
 void rtc_get_time(uint8_t buffer[]) {
     RTC_TimeTypeDef time = {0};
@@ -181,30 +179,6 @@ void rtc_get_time(uint8_t buffer[]) {
 
     sprintf((char*)buffer, "%02d:%02d:%02d", time.Hours, time.Minutes, time.Seconds);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

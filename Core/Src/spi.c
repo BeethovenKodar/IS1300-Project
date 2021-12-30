@@ -145,8 +145,8 @@ uint8_t init_seq[11] = {
 };
 
 /**
- * @brief Error function that handles any error produced while
- * using SPI communication.
+ * @brief Called when an error generated during SPI communication
+ * has been detected.
  * @note Enables LD2 LED on the Nucleo board and loops infinitely.
  */
 void SPI_Error() {
@@ -156,10 +156,9 @@ void SPI_Error() {
 
 /**
   * @brief Set the R/W bit and RS bit in the start byte.
-  * @param nibble: the sequence to set.
-  * @note  nibble in format of "0|RS|R/W|1" (MSB first representation).
+  * @param nibble[in]: the sequence to set.
+  * @note  nibble on format "0|RS|R/W|1" (MSB first representation).
   * Placed at bits 4-7 in the startbyte.
-  * @retval None
   */
 void set_startbyte(uint8_t nibble) {
     instr[0] = ((instr[0] & 0x0F) | (nibble << 4));
@@ -167,10 +166,9 @@ void set_startbyte(uint8_t nibble) {
 
 /**
   * @brief Set the data byte to send, split into two separate bytes
-  * to follow convention.
-  * @param byte: the byte to set up transmission for
-  * @note LSB first ordering in the instruction array instr[].
-  * @retval None
+  * to follow display convention.
+  * @param byte[in]: the byte to transmit as data, MSB format
+  * @note Display requires LSB first, hence the bit ordering.
   */
 void set_byte(uint8_t byte) {
     instr[1] = (byte & 0x0F);
@@ -179,14 +177,14 @@ void set_byte(uint8_t byte) {
 
 /**
  * @brief This functions sets the backlight color of the display.
- * @param color: color mapped to an integer used in the switch statement below.
+ * @param color[in]: color mapped to an integer used in the switch statement below.
+ * @note Red backlight is controlled by PWM, instead of normal GPIO.
  */
 void display_set_backlight(uint8_t color) {
     switch(color) {
 	case 0:
-	    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
-//	    HAL_GPIO_WritePin(Red_Backlight_GPIO_Port, Red_Backlight_Pin, GPIO_PIN_SET);
-	  break;
+	    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2); //RED
+	    break;
 	case 1:
 	    HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_SET);
 	    break;
@@ -198,7 +196,7 @@ void display_set_backlight(uint8_t color) {
 
 /**
  * @brief Resets any active backlight of the display.
- * @note Not including RED, because of PWM.
+ * @note Not including RED, it's reset manually on the board.
  */
 void display_reset_backlight() {
     HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_RESET);
@@ -207,7 +205,7 @@ void display_reset_backlight() {
 
 /**
  * @brief Before using the display it should be reset by toggling the
- * Disp_Reset pin: high->low->high with sufficient delays in between.
+ * Disp_Reset pin: high->low->high with sufficient delays inbetween.
  */
 void display_hw_reset() {
     HAL_Delay(5);
@@ -218,7 +216,8 @@ void display_hw_reset() {
 }
 
 /**
- * @brief sends the current data in the instructions array instr[] over SPI.
+ * @brief Sends the current data loaded in the instruction
+ * array "instr[]" over SPI.
  */
 void send() {
     if (HAL_SPI_Transmit(&hspi2, (uint8_t*)instr, 3, 50) != HAL_OK) {
@@ -227,7 +226,7 @@ void send() {
 }
 
 /**
- * @brief Sets all segments of the display to 20H, i.e. invisible character.
+ * @brief Sets all segments of the display to 20H, blank.
  */
 void display_clear() {
     set_startbyte(RS0_RW0);
@@ -254,8 +253,8 @@ void display_init() {
 }
 
 /**
- * @brief Instructs the display to target the line specified.
- * @param line: the line to target, 1, 2, 3 or 4.
+ * @brief Instructs the display to select the specified line.
+ * @param line[in]: the line to target, 1, 2, 3 or 4.
  */
 void display_set_line(uint8_t line) {
     set_byte(DDRAM_L[line - 1]);
@@ -263,8 +262,8 @@ void display_set_line(uint8_t line) {
 }
 
 /**
- * @brief writes the current instruction loaded to the display.
- * @param the data to send.
+ * @brief Writes the given data to the display line selected beforehand.
+ * @param data[in]: the data to send.
  */
 void display_write(uint8_t data) {
     set_startbyte(RS1_RW0);
@@ -275,9 +274,9 @@ void display_write(uint8_t data) {
 
 /**
  * @brief Receives a buffer to write to the display.
- * @param buf: the buffer of data to send.
- * @param len: length of the buffer.
- * @param line: the line of the display to target.
+ * @param buf[in]: the buffer of data to send.
+ * @param len[in]: length of the buffer.
+ * @param line[in]: the line of the display to target.
  */
 void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
     display_set_line(line);

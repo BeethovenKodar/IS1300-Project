@@ -10,10 +10,52 @@
 #include "spi.h"
 #include "tim.h"
 #include "adc.h"
-
+#include "usart.h"
+#include "rtc.h"
+#include "string.h"
 
 /**
- * @brief Testing that the PWM manipulation works.
+ * @brief Testing that RTC time is correctly set and
+ * counts correctly. Visual result shown over uart.
+ * @note uart needs to be working beforehand.
+ */
+void test_rtc() {
+    uint8_t timestr1[] = "23:59:58";
+    uint8_t currtime[8];
+
+    rtc_set_time(timestr1);
+    uint8_t i = 0;
+    while (i < 5) {
+	HAL_Delay(999);
+	rtc_get_time(currtime);
+	uart_transmit(currtime, strlen((char*)currtime));
+	HAL_Delay(1);
+	uart_transmit((uint8_t*)"\r\n", 2);
+	i++;
+    }
+}
+
+/**
+ * @brief Testing UART transmit and receive, also feedback
+ * when sending chars. Visual test result.
+ */
+void test_uart() {
+    uint8_t buf[] = "Hello testing testing\r\nEnter 10 chars:\r\n";
+    uint8_t mesrec[] = "Message recieved: ";
+
+    uint8_t rec[25];
+
+    uart_transmit(buf, strlen((char*)buf));
+    HAL_Delay(1);
+    uart_receive(rec, 10);
+    HAL_Delay(1);
+    uart_transmit(mesrec, strlen((char*)mesrec));
+    HAL_Delay(1);
+    uart_transmit(rec, strlen((char*)rec));
+}
+
+/**
+ * @brief Testing that the PWM duty cycle works. Visual test result.
  * @note Potentiometer value ranges between 0 - 4067.
  */
 void test_PWM() {
@@ -93,6 +135,8 @@ void test_display() {
 }
 
 void main_test() {
-    test_display();
+//    test_uart();
+    test_rtc();
+//    test_display();
 }
 

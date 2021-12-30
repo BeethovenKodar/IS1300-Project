@@ -42,7 +42,7 @@ void MX_TIM8_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
-void tim_set_duty_cycle(uint16_t voltage);
+void tim_set_duty_cycle(uint16_t pot_value);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

@@ -54,6 +54,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+/* middleman between uart and tasks */
 typedef struct uart_buf_t {
     uint8_t rec_loaded;
     uint8_t send_loaded;
@@ -62,6 +63,7 @@ typedef struct uart_buf_t {
     uint8_t rec_size;
 } uart_buf_t;
 
+/* middleman between display and tasks */
 typedef struct display_buf_t {
     uint8_t L1_new_data;
     uint8_t L1_buf[10];
@@ -73,6 +75,7 @@ typedef struct display_buf_t {
     uint8_t L4_buf[10];
 } display_buf_t;
 
+/* only uart buffer instance */
 uart_buf_t *uart_buf = &(uart_buf_t) {
     .rec_loaded = FALSE,
     .send_loaded = FALSE,
@@ -81,6 +84,7 @@ uart_buf_t *uart_buf = &(uart_buf_t) {
     .rec_size = 0
 };
 
+/* only display buffer instance */
 display_buf_t *disp_buf = &(display_buf_t) {
     .L1_new_data = FALSE,
     .L1_buf = {0},
@@ -128,6 +132,21 @@ const osThreadAttr_t uart_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for uartTxMutex */
+osMutexId_t uartTxMutexHandle;
+const osMutexAttr_t uartTxMutex_attributes = {
+  .name = "uartTxMutex"
+};
+/* Definitions for dispL1mutex */
+osMutexId_t dispL1mutexHandle;
+const osMutexAttr_t dispL1mutex_attributes = {
+  .name = "dispL1mutex"
+};
+/* Definitions for uartRxMutex */
+osMutexId_t uartRxMutexHandle;
+const osMutexAttr_t uartRxMutex_attributes = {
+  .name = "uartRxMutex"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -150,6 +169,15 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of uartTxMutex */
+  uartTxMutexHandle = osMutexNew(&uartTxMutex_attributes);
+
+  /* creation of dispL1mutex */
+  dispL1mutexHandle = osMutexNew(&dispL1mutex_attributes);
+
+  /* creation of uartRxMutex */
+  uartRxMutexHandle = osMutexNew(&uartRxMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* USER CODE END RTOS_MUTEX */
@@ -189,9 +217,9 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
+  * @brief  Dummy thread (not removable), only executes when
+  * all other threads are idle.
+  * @param  argument[in]: not used.
   */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
@@ -205,9 +233,10 @@ void StartDefaultTask(void *argument)
 
 /* USER CODE BEGIN Header_digitalClockEntry */
 /**
-* @brief Function implementing the digitalClock thread.
-* @param argument: Not used
-* @retval None
+* @brief This thread is responsible for the time keeping for the RTC clock. It
+* places data in both the uart and display buffer to handle the task to update
+* the display each second with the RTC time.
+* @param argument[in]: not used.
 */
 /* USER CODE END Header_digitalClockEntry */
 void digitalClockEntry(void *argument)
@@ -216,29 +245,47 @@ void digitalClockEntry(void *argument)
     TickType_t xPeriod = pdMS_TO_TICKS(1000);
     TickType_t xLastWakeTime;
     uint8_t user_prompt[] = "set time as HH:MM:SS\r\n";
+    uint8_t time_rec[] = "\r\nClock started!\r\n";
     uint8_t current_time[8]; //HH:MM:SS
 
+    osMutexWait(uartTxMutexHandle, osWaitForever); //wait for send lock
     taskENTER_CRITICAL();
     memcpy(uart_buf->send_buf, user_prompt, strlen((char*)user_prompt));
     taskEXIT_CRITICAL();
-
     uart_buf->send_loaded = TRUE;
+    osMutexRelease(uartTxMutexHandle); //release send lock
+
+    osMutexWait(uartRxMutexHandle, osWaitForever); //wait for receive lock
     uart_buf->rec_size = 8;
 
     while(uart_buf->rec_loaded == FALSE) {
 	vTaskDelay(pdMS_TO_TICKS(10));
     }
-
     rtc_set_time(uart_buf->rec_buf);
+    vTaskDelay(pdMS_TO_TICKS(1000)); //re-schedule to let clock tick once
+    taskENTER_CRITICAL();
+    memset(uart_buf->rec_buf, 0, 25); //reset buffer
+    taskEXIT_CRITICAL();
+    uart_buf->rec_loaded = FALSE;
+    uart_buf->rec_size = 0;
+    osMutexRelease(uartRxMutexHandle); //release receive lock
 
-    xLastWakeTime = xTaskGetTickCount(); //10k
+    osMutexWait(uartTxMutexHandle, osWaitForever); //wait for send lock
+    taskENTER_CRITICAL();
+    memcpy(uart_buf->send_buf, time_rec, strlen((char*)time_rec));
+    taskEXIT_CRITICAL();
+    uart_buf->send_loaded = TRUE;
+    osMutexRelease(uartTxMutexHandle); //release send lock
+
+    xLastWakeTime = xTaskGetTickCount();
     while(1) {
 	rtc_get_time(current_time);
-	uart_transmit(current_time, 8);
-	HAL_Delay(1);
-	uart_transmit("\r\n", 2);
+	osMutexWait(dispL1mutexHandle, osWaitForever); //wait for disp L1 lock
+	taskENTER_CRITICAL();
 	memcpy(disp_buf->L1_buf, current_time, strlen((char*)current_time));
+	taskEXIT_CRITICAL();
 	disp_buf->L1_new_data = TRUE;
+	osMutexRelease(dispL1mutexHandle); //release disp L1 lock
 	vTaskDelayUntil(&xLastWakeTime, xPeriod);
     }
   /* USER CODE END digitalClockEntry */
@@ -246,9 +293,9 @@ void digitalClockEntry(void *argument)
 
 /* USER CODE BEGIN Header_backlightEntry */
 /**
-* @brief Function implementing the backlight thread.
-* @param argument: Not used
-* @retval None
+* @brief This thread checks continously the potentiometer value and
+* adjusts the red display backlight accordingly.
+* @param argument[in]: not used.
 */
 /* USER CODE END Header_backlightEntry */
 void backlightEntry(void *argument)
@@ -274,9 +321,9 @@ void backlightEntry(void *argument)
 
 /* USER CODE BEGIN Header_displayEntry */
 /**
-* @brief Function implementing the display thread.
-* @param argument: Not used
-* @retval None
+* @brief This thread will look for new data in each display buffer
+* and update the display if current segments are outdated.
+* @param argument[in]: not used.
 */
 /* USER CODE END Header_displayEntry */
 void displayEntry(void *argument)
@@ -311,9 +358,9 @@ void displayEntry(void *argument)
 
 /* USER CODE BEGIN Header_uartEntry */
 /**
-* @brief This thread will look for .
-* @param argument: Not used
-* @retval None
+* @brief This thread will check the uart buffer (transmit and receive) to eventually
+* start transmitting or receiving for a reqesting thread.
+* @param argument[in]: not used.
 */
 /* USER CODE END Header_uartEntry */
 void uartEntry(void *argument)
@@ -322,22 +369,24 @@ void uartEntry(void *argument)
     TickType_t xLastWakeTime;
     TickType_t xPeriod = pdMS_TO_TICKS(100);
 
-    while (uart_buf->send_loaded == FALSE) {
-	vTaskDelay(pdMS_TO_TICKS(10));
-    }
-    taskENTER_CRITICAL();
-    uart_transmit(uart_buf->send_buf, strlen((char*)uart_buf->send_buf));
-    uart_buf->send_loaded = FALSE;
-    memset(uart_buf->send_buf, 0x30, 25);
-
-    uart_receive(uart_buf->rec_buf, uart_buf->rec_size);
-    uart_buf->rec_loaded = TRUE;
-    uart_buf->rec_size = 0;
-    taskEXIT_CRITICAL();
-
     xLastWakeTime = xTaskGetTickCount();
     while(1) {
-       vTaskDelayUntil(&xLastWakeTime, xPeriod);
+	if (uart_buf->send_loaded == TRUE) { //a thread wants to send data
+	    taskENTER_CRITICAL();
+	    uart_transmit(uart_buf->send_buf, strlen((char*)uart_buf->send_buf));
+	    memset(uart_buf->send_buf, 0x0, 25); //reset buffer
+	    taskEXIT_CRITICAL();
+	    uart_buf->send_loaded = FALSE;
+	}
+
+	if (uart_buf->rec_size != 0) { //a thread has requested data
+	    taskENTER_CRITICAL();
+	    uart_receive(uart_buf->rec_buf, uart_buf->rec_size);
+	    taskEXIT_CRITICAL();
+	    uart_buf->rec_loaded = TRUE;
+	    uart_buf->rec_size = 0;
+	}
+        vTaskDelayUntil(&xLastWakeTime, xPeriod);
     }
   /* USER CODE END uartEntry */
 }

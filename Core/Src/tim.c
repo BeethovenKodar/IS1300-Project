@@ -167,12 +167,12 @@ const uint16_t MAX_VALUE = 4067;
 /**
  * @brief Sets the duty cycle for the PWM proportional to the voltage
  * over the potentiometer.
- * @param voltage: the voltage level given by ADC conversion.
+ * @param voltage[in]: the voltage level given by ADC conversion.
  */
-void tim_set_duty_cycle(uint16_t voltage) {
+void tim_set_duty_cycle(uint16_t pot_value) {
     /* "or 1" syntax to never allow for 0% duty cycle */
   //voltage/MAX_VALUE) * 100
-    uint32_t new_dc = (uint32_t)((voltage * 100)/MAX_VALUE | 1);
+    uint32_t new_dc = (uint32_t)((pot_value * 100)/MAX_VALUE | 1);
 
     htim8.Instance->CCR2 = new_dc;
 }

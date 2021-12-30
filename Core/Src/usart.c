@@ -131,38 +131,39 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 /**
- * @brief Error function called upon error generated
- * during UART communication.
+ * @brief Called when an error generated during UART communication
+ * has been detected.
  * @note Enables the LD2 LED on the Nucleo board and loops infinitely.
  */
-void UART_Error(void) {
+void UART_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
     while (1) {}
 }
 
 /**
-  * @brief UART transmission initializer
-  * @param buffer: the buffer of data to transmit.
-  * @param size: amount of bytes to transmit.
+  * @brief UART transmission entry point.
+  * @param buffer[in]: the buffer of data to transmit.
+  * @param size[in]: amount of bytes to transmit.
   */
 void uart_transmit(uint8_t buffer[], uint16_t size) {
     /* uart in reception process */
-    if (HAL_UART_Transmit(&huart5, buffer, size, 10) != HAL_OK) {
+    if (HAL_UART_Transmit(&huart5, buffer, size, 100) != HAL_OK) {
 	UART_Error();
     }
 }
 
 /**
-  * @brief UART reception initializer.
-  * @param buffer: the buffer to place incoming data.
-  * @param size: amount of bytes to receive.
-  * @note feeds back one character at a time to user.
+  * @brief UART reception entry point.
+  * @param buffer[out]: the buffer to place incoming data.
+  * @param size[in]: amount of bytes to receive.
+  * @note feeds back one character at a time to the user.
   */
 void uart_receive(uint8_t buffer[], uint16_t size) {
+    uint32_t MAX_TIMEOUT = 0xFFFF;
     /* uart in reception process */
     uint8_t i = 0;
     while (i < size) {
-	if (HAL_UART_Receive(&huart5, &buffer[i], 1, 0xFFFF) != HAL_OK) {
+	if (HAL_UART_Receive(&huart5, &buffer[i], 1, MAX_TIMEOUT) != HAL_OK) {
 	    UART_Error();
 	}
 	uart_transmit(&buffer[i++], 1);
