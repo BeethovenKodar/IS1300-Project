@@ -1,6 +1,0 @@
-usart.c:32:6:MX_UART5_Init	8	static
-usart.c:59:6:HAL_UART_MspInit	184	static
-usart.c:107:6:HAL_UART_MspDeInit	16	static
-usart.c:138:6:UART_Error	8	static
-usart.c:148:6:uart_transmit	16	static
-usart.c:161:6:uart_receive	24	static

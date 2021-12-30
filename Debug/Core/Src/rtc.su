@@ -1,6 +1,0 @@
-rtc.c:32:6:MX_RTC_Init	32	static
-rtc.c:90:6:HAL_RTC_MspInit	152	static
-rtc.c:116:6:HAL_RTC_MspDeInit	16	static
-rtc.c:138:6:RTC_Error	8	static
-rtc.c:148:6:rtc_set_time	48	static
-rtc.c:170:6:rtc_get_time	48	static
