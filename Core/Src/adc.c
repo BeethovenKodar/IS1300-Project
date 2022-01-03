@@ -2,7 +2,8 @@
   ******************************************************************************
   * @file    adc.c
   * @brief   This file provides code for the configuration
-  *          of the ADC instances.
+  *          of the ADC instance and functions using the instance.
+  * @author  Ludvig Larsson
   ******************************************************************************
   * @attention
   *
@@ -149,7 +150,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 /**
  * @brief Reads the analog voltage of the potentimeter located on the shield
  * and returns a digital conversion.
- * @retval The current voltage level.
+ * @return The current voltage level.
  */
 uint16_t adc_read_pot() {
     HAL_ADC_Start(&hadc1);

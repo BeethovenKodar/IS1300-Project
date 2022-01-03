@@ -1,8 +1,10 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * @file           freertos.c
+  * @brief          Thread implementations for the main program.
+  ******************************************************************************
+  * @author	    Ludvig Larsson
   ******************************************************************************
   * @attention
   *

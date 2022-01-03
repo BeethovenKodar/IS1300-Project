@@ -4,6 +4,8 @@
   * @brief   This file contains all the function prototypes for
   *          the adc.c file
   ******************************************************************************
+  * @author  Ludvig Larsson
+  ******************************************************************************
   * @attention
   *
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.

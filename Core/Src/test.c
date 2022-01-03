@@ -1,9 +1,11 @@
-/*
- * test.c
- *
- *  Created on: Dec 28, 2021
- *      Author: ludvigsmacbook
- */
+/**
+  ******************************************************************************
+  * @file           test.c
+  * @brief          Testing of all components of included in the main program.
+  ******************************************************************************
+  * @author	    Ludvig Larsson
+  ******************************************************************************
+  */
 
 /* includes */
 #include "test.h"
@@ -17,7 +19,8 @@
 /**
  * @brief Testing that RTC time is correctly set and
  * counts correctly. Visual result shown over uart.
- * @note uart needs to be working beforehand.
+ * @note UART needs to be working beforehand.
+ * @retval None.
  */
 void test_rtc() {
     uint8_t timestr1[] = "23:59:58";
@@ -38,6 +41,7 @@ void test_rtc() {
 /**
  * @brief Testing UART transmit and receive, also feedback
  * when sending chars. Visual test result.
+ * @retval None.
  */
 void test_uart() {
     uint8_t buf[] = "Hello testing testing\r\nEnter 10 chars:\r\n";
@@ -57,6 +61,7 @@ void test_uart() {
 /**
  * @brief Testing that the PWM duty cycle works. Visual test result.
  * @note Potentiometer value ranges between 0 - 4067.
+ * @retval None.
  */
 void test_PWM() {
     display_set_backlight(RED);
@@ -78,7 +83,8 @@ void test_PWM() {
  * @brief Ensure that backlight can take colors white and green.
  * Visual test result. Tests that multiple colors can be active
  * simultaneously.
- * @note PWM for red backlight is tested separatly.
+ * @note PWM for red backlight is tested manually via the potentiometer.
+ * @retval None.
  */
 void test_backlight() {
     display_set_backlight(WHITE);
@@ -96,15 +102,12 @@ void test_backlight() {
 /**
  * @brief Initializes the display and targets all 4 lines with content.
  * Tries to overwrite previous data to ensure no old data is left on a
- * line in case fewer segments are needed. Also resets a line.
+ * line in case fewer segments are needed. Also resets lines.
  * Visual rest result.
+ * @retval None.
  */
 void test_display() {
     display_init();
-
-    test_PWM();
-
-    test_backlight();
 
     display_set_backlight(WHITE);
     uint8_t longstr[] = "hello12345";
@@ -129,14 +132,21 @@ void test_display() {
     HAL_Delay(1);
     display_write_line((uint8_t*)"", 0, 4);
     HAL_Delay(1000);
-    display_write_line((uint8_t*)"   DONE", 7, 2);
-    HAL_Delay(1000);
-    display_write_line((uint8_t*)"", 0, 2);
+
+    test_backlight();
+
+    test_PWM();
 }
 
+/**
+ * @brief Entry point for all tests.
+ * @retval None.
+ */
 void main_test() {
-//    test_uart();
+    test_uart();
     test_rtc();
-//    test_display();
+    test_display();
+
+    display_write_line((uint8_t*)"   DONE", 7, 2);
 }
 

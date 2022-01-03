@@ -2,7 +2,9 @@
   ******************************************************************************
   * @file    spi.c
   * @brief   This file provides code for the configuration
-  *          of the SPI instances.
+  *          of the SPI instance and functions using the instance.
+  ******************************************************************************
+  * @author  Ludvig Larsson
   ******************************************************************************
   * @attention
   *
@@ -130,8 +132,8 @@ const uint16_t CLEAR_DISPLAY = 0x01;
 
 
 /* initialization sequence to start the display */
-uint8_t init_seq[11] = {
-    0x3A, //0x1F0A03	#function set: 	   8 bit data length (RE = 1, REV = 0)
+const uint8_t init_seq[11] = {
+    0x3A, /* 0x1F0A03	#function set: 	   8 bit data length (RE = 1, REV = 0) */
     0x09, //0x1F0900	#ext function set: 4 line display
     0x06, //0x1f0600	#entry mode set:   bottom view
     0x1E, //0x1f0E01	#bias setting:	   BS1 = 1
@@ -141,13 +143,14 @@ uint8_t init_seq[11] = {
     0x56, //0x1f0605	#power control:    booster on and set contrast
     0x7A, //0x1f0A07	#contrast set:	   set contrast (DB3-DB0 = C3-C0)
     0x38, //0x1f0803	#functions set:	   8 bit data length (RE = 0, IS = 0)
-    0x0C, //0x1f0E00	#display on:	   display on, cursor off, blink off
+    0x0C  //0x1f0E00	#display on:	   display on, cursor off, blink off
 };
 
 /**
  * @brief Called when an error generated during SPI communication
  * has been detected.
  * @note Enables LD2 LED on the Nucleo board and loops infinitely.
+ * @retval None.
  */
 void SPI_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
@@ -156,9 +159,10 @@ void SPI_Error() {
 
 /**
   * @brief Set the R/W bit and RS bit in the start byte.
-  * @param nibble[in]: the sequence to set.
-  * @note  nibble on format "0|RS|R/W|1" (MSB first representation).
+  * @param[in] nibble The sequence to set.
+  * @note Nibble on format "0_RS_R/W_1" (MSB first representation).
   * Placed at bits 4-7 in the startbyte.
+  * @retval None.
   */
 void set_startbyte(uint8_t nibble) {
     instr[0] = ((instr[0] & 0x0F) | (nibble << 4));
@@ -167,8 +171,9 @@ void set_startbyte(uint8_t nibble) {
 /**
   * @brief Set the data byte to send, split into two separate bytes
   * to follow display convention.
-  * @param byte[in]: the byte to transmit as data, MSB format
+  * @param[in] byte The byte to transmit as data, MSB format
   * @note Display requires LSB first, hence the bit ordering.
+  * @retval None.
   */
 void set_byte(uint8_t byte) {
     instr[1] = (byte & 0x0F);
@@ -177,8 +182,9 @@ void set_byte(uint8_t byte) {
 
 /**
  * @brief This functions sets the backlight color of the display.
- * @param color[in]: color mapped to an integer used in the switch statement below.
+ * @param[in] color Color mapped to an integer used in the switch statement below.
  * @note Red backlight is controlled by PWM, instead of normal GPIO.
+ * @retval None.
  */
 void display_set_backlight(uint8_t color) {
     switch(color) {
@@ -197,6 +203,7 @@ void display_set_backlight(uint8_t color) {
 /**
  * @brief Resets any active backlight of the display.
  * @note Not including RED, it's reset manually on the board.
+ * @retval None.
  */
 void display_reset_backlight() {
     HAL_GPIO_WritePin(White_Backlight_GPIO_Port, White_Backlight_Pin, GPIO_PIN_RESET);
@@ -206,6 +213,7 @@ void display_reset_backlight() {
 /**
  * @brief Before using the display it should be reset by toggling the
  * Disp_Reset pin: high->low->high with sufficient delays inbetween.
+ * @retval None.
  */
 void display_hw_reset() {
     HAL_Delay(5);
@@ -218,6 +226,7 @@ void display_hw_reset() {
 /**
  * @brief Sends the current data loaded in the instruction
  * array "instr[]" over SPI.
+ * @retval None.
  */
 void send() {
     if (HAL_SPI_Transmit(&hspi2, (uint8_t*)instr, 3, 50) != HAL_OK) {
@@ -227,6 +236,7 @@ void send() {
 
 /**
  * @brief Sets all segments of the display to 20H, blank.
+ * @retval None.
  */
 void display_clear() {
     set_startbyte(RS0_RW0);
@@ -237,6 +247,7 @@ void display_clear() {
 /**
  * @brief Initialization routine to set up the running conditions for the display.
  * @note Sequence needed is predefined. Hardware reset required beforehand.
+ * @retval None.
  */
 void display_init() {
 
@@ -254,7 +265,8 @@ void display_init() {
 
 /**
  * @brief Instructs the display to select the specified line.
- * @param line[in]: the line to target, 1, 2, 3 or 4.
+ * @param[in] line The line to target, 1, 2, 3 or 4.
+ * @retval None.
  */
 void display_set_line(uint8_t line) {
     set_byte(DDRAM_L[line - 1]);
@@ -263,7 +275,8 @@ void display_set_line(uint8_t line) {
 
 /**
  * @brief Writes the given data to the display line selected beforehand.
- * @param data[in]: the data to send.
+ * @param[in] data The data to send.
+ * @retval None.
  */
 void display_write(uint8_t data) {
     set_startbyte(RS1_RW0);
@@ -274,9 +287,10 @@ void display_write(uint8_t data) {
 
 /**
  * @brief Receives a buffer to write to the display.
- * @param buf[in]: the buffer of data to send.
- * @param len[in]: length of the buffer.
- * @param line[in]: the line of the display to target.
+ * @param[in] buf The buffer of data to send.
+ * @param[in] len Length of the buffer.
+ * @param[in] line The line of the display to target.
+ * @retval None.
  */
 void display_write_line(uint8_t *buf, uint8_t len, uint8_t line) {
     display_set_line(line);

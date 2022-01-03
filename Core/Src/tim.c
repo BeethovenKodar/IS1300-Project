@@ -2,7 +2,8 @@
   ******************************************************************************
   * @file    tim.c
   * @brief   This file provides code for the configuration
-  *          of the TIM instances.
+  *          of the TIM instances and functions using the instance.
+  * @author  Ludvig Larsson
   ******************************************************************************
   * @attention
   *
@@ -167,7 +168,8 @@ const uint16_t MAX_VALUE = 4067;
 /**
  * @brief Sets the duty cycle for the PWM proportional to the voltage
  * over the potentiometer.
- * @param voltage[in]: the voltage level given by ADC conversion.
+ * @param[in] voltage The voltage level given by ADC conversion.
+ * @retval None.
  */
 void tim_set_duty_cycle(uint16_t pot_value) {
     /* "or 1" syntax to never allow for 0% duty cycle */

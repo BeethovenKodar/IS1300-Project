@@ -2,7 +2,9 @@
   ******************************************************************************
   * @file    rtc.c
   * @brief   This file provides code for the configuration
-  *          of the RTC instances.
+  *          of the RTC instance and functions using the instance.
+  ******************************************************************************
+  * @author  Ludvig Larsson
   ******************************************************************************
   * @attention
   *
@@ -134,6 +136,7 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
  * @brief Called when an error generated during RTC interaction has
  * been detected.
  * @note Activates the LD2 led on the Nucleo board and loops infinitely.
+ * @retval None.
  */
 void RTC_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
@@ -142,7 +145,8 @@ void RTC_Error() {
 
 /**
  * @brief Set the RTC time.
- * @param tstr[in]: time string on format "HH:MM:SS".
+ * @param[in] tstr Time string on format "HH:MM:SS".
+ * @retval None.
  */
 void rtc_set_time(uint8_t tstr[]) {
     RTC_TimeTypeDef time = {0};
@@ -162,8 +166,9 @@ void rtc_set_time(uint8_t tstr[]) {
 
 /**
   * @brief Retrieval function for the current RTC time.
-  * @param buffer[out]: buffer to store the current time.
+  * @param[out] buffer Buffer to store the current time.
   * @note Date function is called to properly retreive the time.
+  * @retval None.
   */
 void rtc_get_time(uint8_t buffer[]) {
     RTC_TimeTypeDef time = {0};

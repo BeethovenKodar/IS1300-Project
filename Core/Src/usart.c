@@ -2,7 +2,8 @@
   ******************************************************************************
   * @file    usart.c
   * @brief   This file provides code for the configuration
-  *          of the USART instances.
+  *          of the USART instances and functions using the instance.
+  * @author  Ludvig Larsson
   ******************************************************************************
   * @attention
   *
@@ -134,6 +135,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
  * @brief Called when an error generated during UART communication
  * has been detected.
  * @note Enables the LD2 LED on the Nucleo board and loops infinitely.
+ * @retval None.
  */
 void UART_Error() {
     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
@@ -142,8 +144,9 @@ void UART_Error() {
 
 /**
   * @brief UART transmission entry point.
-  * @param buffer[in]: the buffer of data to transmit.
-  * @param size[in]: amount of bytes to transmit.
+  * @param[in] buffer The buffer of data to transmit.
+  * @param[in] size Amount of bytes to transmit.
+  * @retval None.
   */
 void uart_transmit(uint8_t buffer[], uint16_t size) {
     /* uart in reception process */
@@ -154,9 +157,10 @@ void uart_transmit(uint8_t buffer[], uint16_t size) {
 
 /**
   * @brief UART reception entry point.
-  * @param buffer[out]: the buffer to place incoming data.
-  * @param size[in]: amount of bytes to receive.
-  * @note feeds back one character at a time to the user.
+  * @param[out] buffer The buffer to place incoming data.
+  * @param[in] size Amount of bytes to receive.
+  * @note Feeds back one character at a time to the user.
+  * @retval None.
   */
 void uart_receive(uint8_t buffer[], uint16_t size) {
     uint32_t MAX_TIMEOUT = 0xFFFF;

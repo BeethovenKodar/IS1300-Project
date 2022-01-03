@@ -1,9 +1,11 @@
-/*
- * test.h
- *
- *  Created on: Dec 28, 2021
- *      Author: ludvigsmacbook
- */
+/**
+  ******************************************************************************
+  * @file           test.h
+  * @brief          Test header declaration for the test entry function.
+  ******************************************************************************
+  * @author	    Ludvig Larsson
+  ******************************************************************************
+  */
 
 #ifndef INC_TEST_H_
 #define INC_TEST_H_
