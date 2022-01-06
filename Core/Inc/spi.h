@@ -36,9 +36,8 @@ extern "C" {
 extern SPI_HandleTypeDef hspi2;
 
 /* USER CODE BEGIN Private defines */
-static const uint8_t RED = 0;
-static const uint8_t WHITE = 1;
-static const uint8_t GREEN = 2;
+static const uint8_t WHITE = 0;
+static const uint8_t GREEN = 1;
 /* USER CODE END Private defines */
 
 void MX_SPI2_Init(void);

@@ -97,8 +97,8 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-  main_test();
-  while(1);
+//  main_test();
+//  while(1);
   /* USER CODE END 2 */
 
   /* Init scheduler */

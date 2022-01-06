@@ -307,9 +307,10 @@ void backlightEntry(void *argument)
     TickType_t xLastWakeTime;
     uint16_t voltage;
 
-    display_set_backlight(RED);
+//    display_set_backlight(WHITE);
+//    display_set_backlight(GREEN);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2); //red backlight
     HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
 
     xLastWakeTime = xTaskGetTickCount();
 

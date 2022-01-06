@@ -64,7 +64,7 @@ void test_uart() {
  * @retval None.
  */
 void test_PWM() {
-    display_set_backlight(RED);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
     uint16_t high_value = 4000;
     uint16_t med_value = 2000;
     uint16_t low_value = 100;
